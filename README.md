@@ -114,7 +114,7 @@ The current GUI implementation contains several stages and views.
 
 ### Data View
 
-![VitalSense Data View](screenshots/Data_View.png)
+![VitalSense Data View](screenshots/Data_view.png)
 
 ### Output Folder Structure
 
