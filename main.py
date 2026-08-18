@@ -37,20 +37,15 @@ def bootstrap():
     
     # 2. Install Requirements
     if os.path.exists(req_file):
-        print("[INFO] Checking/Installing dependencies...")
-        # We use the venv python to install pip packages
+        print("[INFO] Checking dependencies...")
         subprocess.check_call([venv_python, "-m", "pip", "install", "-r", req_file, "--quiet"])
     else:
         print("[WARNING] requirements.txt not found! Skipping install.")
 
     # 3. Relaunch Application
     print("[INFO] Launching Application...\n")
-    
-    # Pass all arguments (like -f video.mp4) to the inner script
     args = [venv_python, __file__] + sys.argv[1:]
     
-    # On Windows, we need to use subprocess.call to avoid permission locking
-    # On Unix, we can use execv to replace the process
     if platform.system() == "Windows":
         subprocess.call(args)
     else:
@@ -58,23 +53,27 @@ def bootstrap():
 
 def main():
     # If we are NOT in a venv, we run the bootstrap process
-    if not is_venv():
+    # (Skip this check if running via PyInstaller frozen app)
+    if not getattr(sys, 'frozen', False) and not is_venv():
         bootstrap()
         sys.exit()
 
-    # --- ACTUAL APPLICATION LOGIC STARTS HERE ---
-    # Only imports complex libraries AFTER bootstrap ensures they exist
-    import argparse
-    from vital_monitor import ProductionVitalMonitor
-
-    parser = argparse.ArgumentParser(description="Production Vital Signs Monitor")
-    parser.add_argument("-f", "--file", type=str, help="Path to video file", default=0)
-    args = parser.parse_args()
+    print("[INFO] Starting Launcher...")
     
-    source = int(args.file) if str(args.file).isdigit() else args.file
-    
-    app = ProductionVitalMonitor()
-    app.run(source=source)
+    # --- LAUNCHER INTEGRATION ---
+    # Instead of starting gui_app directly, we start the Launcher
+    try:
+        import launcher
+        app = launcher.LauncherApp()
+        app.mainloop()
+    except ImportError as e:
+        print(f"[ERROR] Could not import launcher: {e}")
+        print("Ensure 'launcher.py' is in the same directory.")
+    except Exception as e:
+        print(f"[CRITICAL] App crashed: {e}")
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")
 
 if __name__ == "__main__":
     main()

@@ -61,3 +61,51 @@ class HeartRateResNet(nn.Module):
         self.avgpool = nn.AdaptiveAvgPool1d(1)
         self.fc = nn.Sequential(nn.Linear(256, 64), nn.ReLU(), nn.Dropout(0.3), nn.Linear(64, 1))
     def forward(self, x): return self.fc(torch.flatten(self.avgpool(self.layer3(self.layer2(self.layer1(self.prep(x))))), 1))
+
+# ==========================================
+# ⚠️ ACTION REQUIRED: 
+# Paste the EXACT class definition from your training script here.
+# If you used a specific name (e.g. 'RespNet'), rename this class to match.
+# ==========================================
+
+class RespPPGNet(nn.Module):
+    def __init__(self):
+        super(RespPPGNet, self).__init__()
+        # Standard 1D CNN for rPPG breathing estimation
+        # Input: (Batch, 1, 256) -> Output: (Batch, 1) [Breathing Rate]
+        
+        self.conv1 = nn.Conv1d(1, 32, kernel_size=3, padding=1)
+        self.bn1 = nn.BatchNorm1d(32)
+        self.relu = nn.ReLU()
+        self.pool = nn.MaxPool1d(2)
+        
+        self.conv2 = nn.Conv1d(32, 64, kernel_size=3, padding=1)
+        self.bn2 = nn.BatchNorm1d(64)
+        
+        # Adaptive pooling handles variable lengths if needed, 
+        # but forces output to specific size
+        self.global_pool = nn.AdaptiveAvgPool1d(1)
+        
+        # Regression head
+        self.fc = nn.Linear(64, 1)
+
+    def forward(self, x):
+        # Layer 1
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.relu(x)
+        x = self.pool(x)
+        
+        # Layer 2
+        x = self.conv2(x)
+        x = self.bn2(x)
+        x = self.relu(x)
+        x = self.pool(x)
+        
+        # Global Pooling & Flatten
+        x = self.global_pool(x)
+        x = x.flatten(1)
+        
+        # Dense Output
+        x = self.fc(x)
+        return x

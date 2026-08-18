@@ -1,8 +1,10 @@
+opencv-python-headless>=4.8.0
 numpy>=1.21.0
-opencv-python>=4.8.0
 mediapipe==0.10.14
 torch>=2.0.0
 xgboost>=1.7.0
 lightgbm>=4.0.0
 matplotlib>=3.7.0
 scipy>=1.10.0
+customtkinter>=5.2.0
+pillow>=10.0.0
